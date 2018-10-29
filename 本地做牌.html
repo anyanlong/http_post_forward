@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        a {
+            text-decoration:none;
+        }
+        [v-cloak] {
+            display: none;
+        }
+        .base {
+            width: 50px;
+            margin-left: 15px;
+        }
+        img {
+            width: 50px;
+        }
+        .input {
+            width: 100px;
+        }
+        .desc {
+            display: inline-block;
+            width: 80px;
+        }
+        .brand {
+            position: fixed;
+            right: 10px;
+            top: 10px;
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+<div id="app" >
+    <div v-cloak>
+        <!--操作区域-->
+        <div>
+            <el-row>
+                <span class="desc">URL</span><el-input style="width: 500px" v-model="url" placeholder="请输入url"></el-input>
+            </el-row>
+            <el-row>
+                <span class="desc">游戏ID</span><el-input class="input" v-model="gameid" placeholder="请输入游戏id"></el-input>
+            </el-row>
+            <el-row>
+                <span class="desc">RoomID</span><el-input class="input" v-model="roomid" placeholder="请输入房间ID"></el-input>
+            </el-row>
+
+            <el-row>
+                <el-radio v-model="checkBrand" label="ones">第一个人手牌</el-radio>
+                <span class="desc">第一人ID</span><el-input class="input" v-model="oneid" placeholder="请输入ID"></el-input>
+                <div>
+                    <img v-for="one,index in ones" :src="one.src" @click="del(index,'ones',one)" alt="">
+                </div>
+            </el-row>
+            <el-row>
+                <el-radio v-model="checkBrand" label="twos">第二个人手牌</el-radio>
+                <span class="desc">第二人ID</span><el-input class="input" v-model="twoid" placeholder="请输入ID"></el-input>
+                <div>
+                    <img v-for="two,index in twos" :src="two.src" @click="del(index,'twos',two)" alt="">
+                </div>
+            </el-row>
+            <el-row>
+                <el-radio v-model="checkBrand" label="threes">第三个人手牌</el-radio>
+                <span class="desc">第三人ID</span><el-input class="input" v-model="threeid" placeholder="请输入ID"></el-input>
+                <div>
+                    <img v-for="three,index in threes" :src="three.src" @click="del(index,'threes',three)" alt="">
+                </div>
+            </el-row>
+            <el-row>
+                <el-radio v-model="checkBrand" label="fours">第四个人手牌</el-radio>
+                <span class="desc">第四人ID</span><el-input class="input" v-model="fourid" placeholder="请输入ID"></el-input>
+                <div>
+                    <img v-for="four,index in fours" :src="four.src" @click="del(index,'fours',four)" alt="">
+                </div>
+            </el-row>
+            <el-row>
+                <el-radio v-model="checkBrand" label="huns">混牌</el-radio>
+                <div>
+                    <img v-for="hun,index in huns" :src="hun.src" @click="del(index,'huns',hun)" alt="">
+                </div>
+            </el-row>
+            <el-row>
+                <el-radio v-model="checkBrand" label="mounds">牌堆</el-radio>
+                <div>
+                    <img v-for="mound,index in mounds" :src="mound.src" @click="del(index,'mounds',mound)" alt="">
+                </div>
+            </el-row>
+        </div>
+        <!--操作区域-->
+
+        <el-button @click="sub">提交手牌</el-button>
+        <el-button @click="selectduipai">查询堆牌</el-button>
+        <el-button @click="subduipai">提交堆牌</el-button>
+
+        <el-row>
+            <span>房间号</span>
+            <el-input class="input" v-model="delroomid" placeholder="请输入房间ID"></el-input>
+            <el-button @click="delroom">解散房间</el-button>
+        </el-row>
+        <!--基础牌-->
+        <div class="brand">
+            <el-row>
+                <el-badge v-for="item in wans" :value="item.time" class="item">
+                    <img class="base" :src="item.src" @click="add(item)" alt="">
+                </el-badge>
+            </el-row>
+            <el-row>
+                <el-badge v-for="item in tiaos" :value="item.time" class="item">
+                    <img class="base" :src="item.src" @click="add(item)" alt="">
+                </el-badge>
+            </el-row>
+            <el-row>
+                <el-badge v-for="item in tongs" :value="item.time" class="item">
+                    <img class="base" :src="item.src" @click="add(item)" alt="">
+                </el-badge>
+            </el-row>
+            <el-row>
+                <el-badge v-for="item in jians" :value="item.time" class="item">
+                    <img class="base" :src="item.src" @click="add(item)" alt="">
+                </el-badge>
+                <el-badge v-for="item in fengs" :value="item.time" class="item">
+                    <img class="base" :src="item.src" @click="add(item)" alt="">
+                </el-badge>
+            </el-row>
+
+
+
+        </div>
+        <!--基础牌-->
+    </div>
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui@2.3.3/lib/index.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            url: 'http://localhost:8088/zuo_pai',
+            gameid: '',
+            roomid: '',
+            oneid: '',
+            twoid: '',
+            threeid: '',
+            fourid: '',
+            delroomid: '',
+            wans: [
+                {
+                    name: "wan_1",
+                    src: "http://cdn.phplua.cn/pai/wan1.jpg",
+                    label: 11,
+                    time: 4
+                },
+                {
+                    name: "wan_2",
+                    src: "http://cdn.phplua.cn/pai/wan2.jpg",
+                    label: 12,
+                    time: 4
+                },
+                {
+                    name: "wan_3",
+                    src: "http://cdn.phplua.cn/pai/wan3.jpg",
+                    label: 13,
+                    time: 4
+                },
+                {
+                    name: "wan_4",
+                    src: "http://cdn.phplua.cn/pai/wan4.jpg",
+                    label: 14,
+                    time: 4
+
+                },
+                {
+                    name: "wan_5",
+                    src: "http://cdn.phplua.cn/pai/wan5.jpg",
+                    label: 15,
+                    time: 4
+                },
+                {
+                    name: "wan_6",
+                    src: "http://cdn.phplua.cn/pai/wan6.jpg",
+                    label: 16,
+                    time: 4
+                },
+                {
+                    name: "wan_7",
+                    src: "http://cdn.phplua.cn/pai/wan7.jpg",
+                    label: 17,
+                    time: 4
+                },
+                {
+                    name: "wan_8",
+                    src: "http://cdn.phplua.cn/pai/wan8.jpg",
+                    label: 18,
+                    time: 4
+                },
+                {
+                    name: "wan_9",
+                    src: "http://cdn.phplua.cn/pai/wan9.jpg",
+                    label: 19,
+                    time: 4
+                },
+            ],
+            tiaos: [
+                {
+                    name: "tiao_1",
+                    src: "http://cdn.phplua.cn/pai/tiao1.jpg",
+                    label: 21,
+                    time: 4
+                },
+                {
+                    name: "tiao_2",
+                    src: "http://cdn.phplua.cn/pai/tiao2.jpg",
+                    label: 22,
+                    time: 4
+                },
+                {
+                    name: "tiao_3",
+                    src: "http://cdn.phplua.cn/pai/tiao3.jpg",
+                    label: 23,
+                    time: 4
+                },
+                {
+                    name: "tiao_4",
+                    src: "http://cdn.phplua.cn/pai/tiao4.jpg",
+                    label: 24,
+                    time: 4
+
+                },
+                {
+                    name: "tiao_5",
+                    src: "http://cdn.phplua.cn/pai/tiao5.jpg",
+                    label: 25,
+                    time: 4
+                },
+                {
+                    name: "tiao_6",
+                    src: "http://cdn.phplua.cn/pai/tiao6.jpg",
+                    label: 26,
+                    time: 4
+                },
+                {
+                    name: "tiao_7",
+                    src: "http://cdn.phplua.cn/pai/tiao7.jpg",
+                    label: 27,
+                    time: 4
+                },
+                {
+                    name: "tiao_8",
+                    src: "http://cdn.phplua.cn/pai/tiao8.jpg",
+                    label: 28,
+                    time: 4
+                },
+                {
+                    name: "tiao_9",
+                    src: "http://cdn.phplua.cn/pai/tiao9.jpg",
+                    label: 29,
+                    time: 4
+                },
+            ],
+            tongs: [
+                {
+                    name: "tong_1",
+                    src: "http://cdn.phplua.cn/pai/tong1.jpg",
+                    label: 31,
+                    time: 4
+                },
+                {
+                    name: "tong_2",
+                    src: "http://cdn.phplua.cn/pai/tong2.jpg",
+                    label: 32,
+                    time: 4
+                },
+                {
+                    name: "tong_3",
+                    src: "http://cdn.phplua.cn/pai/tong3.jpg",
+                    label: 33,
+                    time: 4
+                },
+                {
+                    name: "tong_4",
+                    src: "http://cdn.phplua.cn/pai/tong4.jpg",
+                    label: 34,
+                    time: 4
+
+                },
+                {
+                    name: "tong_5",
+                    src: "http://cdn.phplua.cn/pai/tong5.jpg",
+                    label: 35,
+                    time: 4
+                },
+                {
+                    name: "tong_6",
+                    src: "http://cdn.phplua.cn/pai/tong6.jpg",
+                    label: 36,
+                    time: 4
+                },
+                {
+                    name: "tong_7",
+                    src: "http://cdn.phplua.cn/pai/tong7.jpg",
+                    label: 37,
+                    time: 4
+                },
+                {
+                    name: "tong_8",
+                    src: "http://cdn.phplua.cn/pai/tong8.jpg",
+                    label: 38,
+                    time: 4
+                },
+                {
+                    name: "tong_9",
+                    src: "http://cdn.phplua.cn/pai/tong9.jpg",
+                    label: 39,
+                    time: 4
+                },
+            ],
+            jians: [
+                {
+                    name: "jian_1",
+                    src: "http://cdn.phplua.cn/pai/zhong.jpg",
+                    label: 41,
+                    time: 4
+                },
+                {
+                    name: "jian_2",
+                    src: "http://cdn.phplua.cn/pai/fa.jpg",
+                    label: 42,
+                    time: 4
+                },
+                {
+                    name: "jian_3",
+                    src: "http://cdn.phplua.cn/pai/bai.jpg",
+                    label: 43,
+                    time: 4
+                }
+            ],
+            fengs: [
+                {
+                    name: "feng_1",
+                    src: "http://cdn.phplua.cn/pai/dong.jpg",
+                    label: 51,
+                    time: 4
+                },
+                {
+                    name: "feng_2",
+                    src: "http://cdn.phplua.cn/pai/nan.jpg",
+                    label: 52,
+                    time: 4
+                },
+                {
+                    name: "feng_3",
+                    src: "http://cdn.phplua.cn/pai/xi.jpg",
+                    label: 53,
+                    time: 4
+                },
+                {
+                    name: "feng_4",
+                    src: "http://cdn.phplua.cn/pai/bei.jpg",
+                    label: 54,
+                    time: 4
+                }
+            ],
+
+            mounds: [],                         //牌堆
+            ones: [],
+            twos: [],
+            threes: [],
+            fours: [],
+            huns: [],
+            showRule: [],
+            checkBrand: "mounds"
+
+        },
+
+        //初始化页面判断登录状态
+        created: function () {
+            let _this = this;
+
+            //请求后端的
+            // axios.get('',{
+            // })
+            //     .then(function (response) {
+
+            //     });
+
+
+        },
+
+
+        methods: {
+            add (wan) {
+                if (!this.checkBrandLong()) {
+                    this.$message.error('已经13张了,不能再添加了');
+                    return false;
+                }
+                if (!this.checkLong(wan)) {
+                    this.$message.error('该牌已经添加4张了,不能再添加了');
+                    return false;
+                }
+                this[this.checkBrand].push(wan);
+            },
+
+            //删除
+            del(index,type,data) {
+                let e = data.name.split("_");
+                this[e[0] + "s"][e[1] - 1].time ++;
+                this[type].splice(index,1);
+                this.$message({
+                    message: '手牌删除成功',
+                    type: 'success'
+                });
+            },
+
+            /**
+             * 检查手牌长度
+             * 牌堆跳出检查
+             * @returns {boolean}
+             */
+            checkBrandLong() {
+                if(this[this.checkBrand].length < 13 || this.checkBrand == 'mounds') {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+            /**
+             * 用来检查单个牌
+             * @param data
+             * @returns {boolean}
+             */
+            checkLong(data) {
+                if (data.time > 0) {
+                    let type = data.name.split("_");
+                    this[type[0] + "s"][type[1] - 1].time --;
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+
+
+            sub() {
+                //发送手牌
+                if (this.oneid !== '' && this.ones.length > 0)  this.sendBrand(this.formatPerson(this.oneid,'ones'));
+                if (this.twoid !== '' && this.twos.length > 0) this.sendBrand(this.formatPerson(this.twoid,'twos'));
+                if (this.threeid !== '' && this.threes.length > 0)  this.sendBrand(this.formatPerson(this.threeid,'threes'));
+                if (this.fourid !== '' && this.fours.length > 0)  this.sendBrand(this.formatPerson(this.fourid,'fours'));
+            },
+
+            subduipai() {
+                if (this.mounds.length > 0) this.sendBrand(this.formatDuiPai());
+
+            },
+
+            selectduipai() {
+                let data = {};
+                data.action = "read_zuo_dui_pai";
+                data.game_id = parseInt(this.gameid);
+                data.room_id = this.roomid;
+                this.sendBrand(data);
+            },
+
+            delroom() {
+                let data = {};
+                data.action = "force_dismiss_room";
+                data.game_id = parseInt(this.gameid);
+                data.room_id = parseInt(this.delroomid);
+                this.sendBrand(data);
+            },
+
+
+            /**
+             * 用来格式化发送手牌数据
+             * @param uid 用户id
+             * @param type 传入格式化数据
+             * @returns {object}
+             */
+            formatPerson(uid,type) {
+                let shou_pai = [];
+                for(let value of this[type]) {
+                    shou_pai.push(value.label);
+                }
+                let person = {"action":"alter_user_pai","game_id":parseInt(this.gameid),"uid": parseInt(uid),"shou_pai":shou_pai};
+                return person;
+            },
+
+            /**
+             * 用来格式化牌堆
+             * @returns {}
+             */
+            formatDuiPai() {
+            	let _this = this;
+                let brands = {};
+                brands.action = "alter_dui_pai";
+                brands.game_id = parseInt(this.gameid);
+                brands.room_id = this.roomid;
+                if( _this.huns.length >0) {
+                	 brands.hun_pai = _this.huns[0].label;
+                }
+                let dui_pai = [];
+                for(let value of this.mounds) {
+                    dui_pai.push(value.label);
+                }
+                brands.dui_pai = dui_pai;
+                return brands;
+            },
+
+
+
+            /**
+             * 发出请求制作牌型
+             * @param data
+             */
+            sendBrand(data) {
+                let _this = this;
+                console.log(data)
+                axios.post(_this.url, {
+                    "data": JSON.stringify(data)})
+                    .then(function (response) {
+                        console.log(response.data);
+                        if(response.data.status == 'ok') {
+                            _this.$message({
+                                message: '请求成功',
+                                type: 'success'
+                            });
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            }
+
+
+        }
+    });
+
+
+
+</script>
+
+</html>
