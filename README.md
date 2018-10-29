@@ -1,1 +1,13 @@
 # http_post_forward
+
+* clone下来 先运行转发服务
+```
+./start.sh
+```
+
+* 然后打开本地做牌.html 就可以做了
+
+* 终止转发服务 跑一下
+```
+./end.sh
+```
